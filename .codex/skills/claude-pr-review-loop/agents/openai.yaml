@@ -1,0 +1,4 @@
+interface:
+  display_name: "Claude Code PR Review Loop"
+  short_description: "Claude CodeでPRのコードレビューループを回す"
+  default_prompt: "Use $claude-pr-review-loop to review a GitHub pull request with Claude Code and iterate on fixes."
