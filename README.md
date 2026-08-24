@@ -1,47 +1,99 @@
 # engineering-skills
 
-私（keitakn）がエンジニアリングを行う際に利用しているスキル一覧です。
-
-AIコーディングエージェント（Claude Code / Codex CLI）向けのエージェントスキルを公開しています。特定のプロジェクト・組織の知識には依存しません。
+私（keitakn）が普段の開発で使っているエージェントスキルを公開しています。SKILL.md 形式なので、Claude Code、Codex、Cursor のようにこの形式に対応したエージェントで使えます。特定のプロジェクトや組織の知識には依存しません。
 
 ## スキル一覧
 
-| スキル | 利用するツール | 説明 |
+| スキル | 主な実行環境 | こういうときに使う |
 |---|---|---|
-| [code-comments](.claude/skills/code-comments) | Claude Code | コード / テストコード / コミットログ / コードコメントのどこに何を書くかを決める。コードには How、テストコードには What、コミットログには Why、コードコメントには Why not を書き分ける |
-| [code-naming](.claude/skills/code-naming) | Claude Code | 識別子の命名。`get` の濫用をやめ、何をして値を得るのかが名前から読み取れる状態にする |
-| [codex-plan-review-loop](.claude/skills/codex-plan-review-loop) | Claude Code | Codex CLI をレビュアーとして、実装計画の「指摘 → 修正」の改善ループを回す |
-| [codex-pr-review-loop](.claude/skills/codex-pr-review-loop) | Claude Code | Codex CLI をレビュアーとして、自作 Pull Request の「指摘 → 修正 → 再レビュー」のループを回す |
-| [explain-visually](.claude/skills/explain-visually) | Claude Code | 長大な設計文書・PR・Issue を読み解き、図と短い文を組み合わせた解説HTMLを生成してブラウザで開く |
-| [github-pr-review-draft](.claude/skills/github-pr-review-draft) | Claude Code | 他の開発者の PR を下読みしてレビューコメント案を作り、人間が承認した内容だけを保留（PENDING）レビュー経由で投稿する |
-| [claude-plan-review-loop](.codex/skills/claude-plan-review-loop) | Codex CLI | Claude Code をレビュアーとして、実装計画の「指摘 → 修正」の改善ループを回す |
-| [claude-pr-review-loop](.codex/skills/claude-pr-review-loop) | Codex CLI | Claude Code をレビュアーとして、自作 Pull Request の「指摘 → 修正 → 再レビュー」のループを回す |
+| [code-comments](.claude/skills/code-comments) | どのツールでも | AIに実装を任せると、コードをなぞるだけのコメントが増えていく。それを止めたいときに。コードには How、テストには What、コミットログには Why、コメントには Why not（あえてやらなかったこと）だけを書かせる |
+| [code-naming](.claude/skills/code-naming) | どのツールでも | `getUserData` のような何も説明しない名前をAIが量産してくるときに。名前だけで、通信するのか、計算するのか、持っている値を返すだけなのかが読み取れる状態にする |
+| [codex-plan-review-loop](.claude/skills/codex-plan-review-loop) | Claude Code | AIに書かせた実装計画を、そのまま実装に進めてよいか不安なときに。実装前に Codex へレビューさせ、指摘と修正のループを回してから着手する |
+| [codex-pr-review-loop](.claude/skills/codex-pr-review-loop) | Claude Code | AIと作った Pull Request を人間のレビューに出す前に、一度検収を通したいときに。Codex が指摘し、取捨選択は人間が行い、修正と再レビューはループが回す |
+| [explain-visually](.claude/skills/explain-visually) | Claude Code | 長い設計文書や PR を渡されて、正直なところ読む気にならないときに。図と短い文で1枚のHTMLに組み直し、ブラウザで開く |
+| [github-pr-review-draft](.claude/skills/github-pr-review-draft) | Claude Code | 他の開発者の PR レビューを AI に手伝わせたいが、勝手にコメントを投稿されては困るときに。AI がやるのは下読みとコメント案まで。GitHub に出るのは人間が承認した文面だけ |
+| [claude-plan-review-loop](.codex/skills/claude-plan-review-loop) | Codex | codex-plan-review-loop の逆方向。Codex で開発していて、実装計画のレビューを Claude Code に任せたいときに |
+| [claude-pr-review-loop](.codex/skills/claude-pr-review-loop) | Codex | codex-pr-review-loop の逆方向。Codex で作った PR を Claude Code に検収させたいときに |
 
-## 構成
-
-- `.claude/skills/` 配下が Claude Code 用、`.codex/skills/` 配下が Codex CLI 用です
-- 各スキルディレクトリは自己完結しており、必要なものだけを選んで使えます
-- 前提条件（必要な CLI・認証など）は各スキルの SKILL.md に記載しています
+前提条件（必要な CLI や認証）は各スキルの SKILL.md に書いてあります。
 
 ### 対のスキルについて
 
-`codex-plan-review-loop`（Claude Code から Codex CLI を呼ぶ）と `claude-plan-review-loop`（Codex CLI から Claude Code を呼ぶ）、および `codex-pr-review-loop` と `claude-pr-review-loop` は、レビュアーと実行側を入れ替えた対のスキルです。同じ駆動スクリプト（`plan_review.py` / `pr_review.py`）を使う設計のため、両方のディレクトリに同じ内容のスクリプトが含まれています。どちらか一方だけでも利用できます。
+codex-plan-review-loop と claude-plan-review-loop、codex-pr-review-loop と claude-pr-review-loop は、実行側とレビュアーを入れ替えた対です。同じ駆動スクリプト（`plan_review.py` / `pr_review.py`）を使う設計のため、両方のディレクトリに同じ内容のスクリプトが入っています。片方だけ使っても問題ありません。
 
 ## 導入方法
 
-このリポジトリを clone し、使いたいスキルのディレクトリごとに、各ツールのスキルディレクトリへシンボリックリンクを貼ります（コピーでも動作します。シンボリックリンクにすると `git pull` だけで更新が反映されます）。
+スキルはディレクトリ単位で自己完結しています。使いたいものだけ選んで、各ツールがスキルを探す場所に置いてください。
+
+まずこのリポジトリを clone します。
 
 ```bash
-cd /path/to/engineering-skills
-
-mkdir -p ~/.claude/skills ~/.codex/skills
-
-# 例: code-naming（Claude Code 用）
-ln -sfn "$(git rev-parse --show-toplevel)/.claude/skills/code-naming" ~/.claude/skills/code-naming
-
-# 例: claude-pr-review-loop（Codex CLI 用）
-ln -sfn "$(git rev-parse --show-toplevel)/.codex/skills/claude-pr-review-loop" ~/.codex/skills/claude-pr-review-loop
+git clone https://github.com/keitakn/engineering-skills.git
+cd engineering-skills
 ```
+
+### Claude Code
+
+個人用スキルは `~/.claude/skills/` から読み込まれます。シンボリックリンクも公式にサポートされているので、リンクで置いておくと `git pull` だけで更新が反映されます。
+
+```bash
+mkdir -p ~/.claude/skills
+
+REPO="$(git rev-parse --show-toplevel)"
+ln -sfn "$REPO/.claude/skills/code-comments"          ~/.claude/skills/code-comments
+ln -sfn "$REPO/.claude/skills/code-naming"            ~/.claude/skills/code-naming
+ln -sfn "$REPO/.claude/skills/codex-plan-review-loop" ~/.claude/skills/codex-plan-review-loop
+ln -sfn "$REPO/.claude/skills/codex-pr-review-loop"   ~/.claude/skills/codex-pr-review-loop
+ln -sfn "$REPO/.claude/skills/explain-visually"       ~/.claude/skills/explain-visually
+ln -sfn "$REPO/.claude/skills/github-pr-review-draft" ~/.claude/skills/github-pr-review-draft
+```
+
+レビューループ系と explain-visually と github-pr-review-draft は `disable-model-invocation: true` を付けているので、`/スキル名` で明示的に呼んだときだけ動きます。code-comments と code-naming は明示的に呼べるほか、関連する作業でエージェントが自動的にも参照します。
+
+### Codex
+
+ユーザーグローバルのスキルは `~/.agents/skills/` から読み込まれます。`~/.codex/skills/` も後方互換で読み込まれますが、現行の公式ドキュメントに書かれている場所は `~/.agents/skills/` です。シンボリックリンクのサポートは公式ドキュメントに明記されています。
+
+```bash
+mkdir -p ~/.agents/skills
+
+REPO="$(git rev-parse --show-toplevel)"
+ln -sfn "$REPO/.codex/skills/claude-plan-review-loop" ~/.agents/skills/claude-plan-review-loop
+ln -sfn "$REPO/.codex/skills/claude-pr-review-loop"   ~/.agents/skills/claude-pr-review-loop
+
+# ツールを選ばないスキルも同じ要領で使えます
+ln -sfn "$REPO/.claude/skills/code-comments" ~/.agents/skills/code-comments
+ln -sfn "$REPO/.claude/skills/code-naming"   ~/.agents/skills/code-naming
+```
+
+呼び出しは `$スキル名` のメンションか `/skills` です。
+
+### Cursor
+
+Cursor 2.4（2026年1月）から Agent Skills に対応しています。読み込み場所はユーザーグローバルの `~/.cursor/skills/` のほか、互換のための `~/.claude/skills/` や `~/.agents/skills/` などです。
+
+ただし、エディタ版の Cursor にはシンボリックリンクを辿らない[既知の問題](https://forum.cursor.com/t/cursor-doesnt-follow-symlinks-to-discover-skills/149693)があります（Cursor CLI は対応済み）。上のようなリンク配置だとエディタからスキルが見えないことがあるため、Cursor で使う分はコピーで置くのが確実です。
+
+```bash
+mkdir -p ~/.cursor/skills
+
+REPO="$(git rev-parse --show-toplevel)"
+cp -R "$REPO/.claude/skills/code-comments" ~/.cursor/skills/code-comments
+cp -R "$REPO/.claude/skills/code-naming"   ~/.cursor/skills/code-naming
+```
+
+コピーは `git pull` では更新されないので、更新したいときは同じコマンドで入れ直してください。呼び出しはチャットで `/スキル名` です。
+
+他のスキルも同じ要領で置けますが、私が普段動かしているのは Claude Code と Codex の上で、Cursor での動作は確認していません。
+
+## 参考リンク
+
+各ツールのスキルの仕組みは公式ドキュメントを参照してください。
+
+- Claude Code: https://code.claude.com/docs/en/skills
+- Codex: https://developers.openai.com/codex/skills
+- Cursor: https://cursor.com/docs/skills
+- Agent Skills 標準: https://agentskills.io
 
 ## ライセンス
 
