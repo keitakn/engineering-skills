@@ -290,7 +290,6 @@ python3 "${CLAUDE_SKILL_DIR}/scripts/pr_review_draft.py" submit --run "<runDir>"
 - REQUEST_CHANGES: このスクリプトは送信しない。必要な場合はユーザーがGitHub画面のボタンで行う（送信できるのはCOMMENTと、ユーザーが明示的に指示したAPPROVEのみ）
 - ファイル全体へのコメント（特定行に紐づかないコメント）: 報告書に回す（まとめ文は固定文のため書き足せない）
 - PRで変更されていないファイルへの指摘: 報告書のみに載せる（「投稿しない指摘」）
-- Codex版の対のスキルはv2以降の予定
 
 ## トラブルシューティング
 

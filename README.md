@@ -8,14 +8,16 @@
 |---|---|-----------------------------------------------------------------------------------------------------------------|
 | [code-comments](.claude/skills/code-comments) | どのツールでも | AIに実装を任せると、コードをなぞるだけのコメントが増えていく。それを止めたいときに。コードには How、テストには What、コミットログには Why、コメントには Why not（あえてやらなかったこと）だけを書かせる |
 | [code-naming](.claude/skills/code-naming) | どのツールでも | AIは `getUserData` のような微妙な名前の関数名を書いてくるので、名前だけで何をするのか分かりやすくする                                                     |
-| [codex-plan-review-loop](.claude/skills/codex-plan-review-loop) | Claude Code | Claude Coddで作った実装計画をCodexでレビューする時に使う。実装前に指摘と修正のループを回してから着手する                                                    |
+| [codex-plan-review-loop](.claude/skills/codex-plan-review-loop) | Claude Code | Claude Codeで作った実装計画をCodexでレビューする時に使う。実装前に指摘と修正のループを回してから着手する                                                    |
 | [codex-pr-review-loop](.claude/skills/codex-pr-review-loop) | Claude Code | Claude Codeで作った Pull Request をCodexでレビューする、PRを出す前に使う。Codex が指摘し、取捨選択は人間が行い、修正と再レビューはループが回す                      |
-| [explain-visually](.claude/skills/explain-visually) | Claude Code | 長文の実装計画や、他のメンバーが AI で作った PR などを読み解いて、理解を早めたいときに。図と短い文で1枚のHTMLに組み直し、ブラウザで開く                                      |
-| [github-pr-review-draft](.claude/skills/github-pr-review-draft) | Claude Code | 他の開発者の PR レビューを AI に手伝わせたいが、勝手にコメントを投稿されては困るときに。AI がやるのは下読みとコメント案まで。GitHub に出るのは人間が承認した文面だけ                     |
+| [explain-visually](.claude/skills/explain-visually) | どのツールでも（Claude Code 推奨） | 長文の実装計画や、他のメンバーが AI で作った PR などを読み解いて、理解を早めたいときに。図と短い文で1枚のHTMLに組み直し、ブラウザで開く                                      |
+| [github-pr-review-draft](.claude/skills/github-pr-review-draft) | どのツールでも（Claude Code 推奨） | 他の開発者の PR レビューを AI に手伝わせたいが、勝手にコメントを投稿されては困るときに。AI がやるのは下読みとコメント案まで。GitHub に出るのは人間が承認した文面だけ                     |
 | [claude-plan-review-loop](.codex/skills/claude-plan-review-loop) | Codex | codex-plan-review-loop の逆方向。Codex で開発していて、実装計画のレビューを Claude Code に任せたいときに                                       |
 | [claude-pr-review-loop](.codex/skills/claude-pr-review-loop) | Codex | codex-pr-review-loop の逆方向。Codex で作った PR を Claude Code に検収させたいときに                                                |
 
 前提条件（必要な CLI や認証）は各スキルの SKILL.md に書いてあります。
+
+explain-visually と github-pr-review-draft は、シェルと `gh` や python3 を使えるエージェントならどれでも動きます。ただ、私が使っていて一番結果が良いのは Claude Code です。
 
 ### 対のスキルについて
 
@@ -66,8 +68,10 @@ ln -sfn "$REPO/.codex/skills/claude-plan-review-loop" ~/.agents/skills/claude-pl
 ln -sfn "$REPO/.codex/skills/claude-pr-review-loop"   ~/.agents/skills/claude-pr-review-loop
 
 # ツールを選ばないスキルも同じ要領で使えます
-ln -sfn "$REPO/.claude/skills/code-comments" ~/.agents/skills/code-comments
-ln -sfn "$REPO/.claude/skills/code-naming"   ~/.agents/skills/code-naming
+ln -sfn "$REPO/.claude/skills/code-comments"          ~/.agents/skills/code-comments
+ln -sfn "$REPO/.claude/skills/code-naming"            ~/.agents/skills/code-naming
+ln -sfn "$REPO/.claude/skills/explain-visually"       ~/.agents/skills/explain-visually
+ln -sfn "$REPO/.claude/skills/github-pr-review-draft" ~/.agents/skills/github-pr-review-draft
 ```
 
 呼び出しは `$スキル名` のメンションか `/skills` です。
