@@ -1,0 +1,4 @@
+interface:
+  display_name: "Claude Plan Review Loop"
+  short_description: "Claude Codeで実装計画レビューのループを回す"
+  default_prompt: "Use $claude-plan-review-loop to review an implementation plan against its source requirements."
