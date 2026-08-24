@@ -32,11 +32,14 @@ git clone https://github.com/keitakn/engineering-skills.git
 cd engineering-skills
 ```
 
+ここから先のコマンドは、すべてこの clone した engineering-skills ディレクトリの中で実行してください。各コマンドはリポジトリの場所を `git rev-parse` で取得するので、`~/.claude/skills` などの置き先ディレクトリへ移動する必要はありません。
+
 ### Claude Code
 
 個人用スキルは `~/.claude/skills/` から読み込まれます。シンボリックリンクも公式にサポートされているので、リンクで置いておくと `git pull` だけで更新が反映されます。
 
 ```bash
+# clone した engineering-skills リポジトリの中で実行
 mkdir -p ~/.claude/skills
 
 REPO="$(git rev-parse --show-toplevel)"
@@ -55,6 +58,7 @@ ln -sfn "$REPO/.claude/skills/github-pr-review-draft" ~/.claude/skills/github-pr
 ユーザーグローバルのスキルは `~/.agents/skills/` から読み込まれます。`~/.codex/skills/` も後方互換で読み込まれますが、現行の公式ドキュメントに書かれている場所は `~/.agents/skills/` です。シンボリックリンクのサポートは公式ドキュメントに明記されています。
 
 ```bash
+# clone した engineering-skills リポジトリの中で実行
 mkdir -p ~/.agents/skills
 
 REPO="$(git rev-parse --show-toplevel)"
@@ -75,16 +79,21 @@ Cursor 2.4（2026年1月）から Agent Skills に対応しています。読み
 ただし、エディタ版の Cursor にはシンボリックリンクを辿らない[既知の問題](https://forum.cursor.com/t/cursor-doesnt-follow-symlinks-to-discover-skills/149693)があります（Cursor CLI は対応済み）。上のようなリンク配置だとエディタからスキルが見えないことがあるため、Cursor で使う分はコピーで置くのが確実です。
 
 ```bash
+# clone した engineering-skills リポジトリの中で実行
 mkdir -p ~/.cursor/skills
 
 REPO="$(git rev-parse --show-toplevel)"
-cp -R "$REPO/.claude/skills/code-comments" ~/.cursor/skills/code-comments
-cp -R "$REPO/.claude/skills/code-naming"   ~/.cursor/skills/code-naming
+cp -R "$REPO/.claude/skills/code-comments"          ~/.cursor/skills/code-comments
+cp -R "$REPO/.claude/skills/code-naming"            ~/.cursor/skills/code-naming
+cp -R "$REPO/.claude/skills/codex-plan-review-loop" ~/.cursor/skills/codex-plan-review-loop
+cp -R "$REPO/.claude/skills/codex-pr-review-loop"   ~/.cursor/skills/codex-pr-review-loop
+cp -R "$REPO/.claude/skills/explain-visually"       ~/.cursor/skills/explain-visually
+cp -R "$REPO/.claude/skills/github-pr-review-draft" ~/.cursor/skills/github-pr-review-draft
+cp -R "$REPO/.codex/skills/claude-plan-review-loop" ~/.cursor/skills/claude-plan-review-loop
+cp -R "$REPO/.codex/skills/claude-pr-review-loop"   ~/.cursor/skills/claude-pr-review-loop
 ```
 
-コピーは `git pull` では更新されないので、更新したいときは同じコマンドで入れ直してください。呼び出しはチャットで `/スキル名` です。
-
-他のスキルも同じ要領で置けますが、私が普段動かしているのは Claude Code と Codex の上で、Cursor での動作は確認していません。
+コピーは `git pull` では更新されません。更新するときは、置いたスキルのディレクトリを `rm -rf ~/.cursor/skills/<スキル名>` で消してから、同じ cp コマンドで入れ直してください（ディレクトリが残ったまま cp すると、その中に入れ子でコピーされてしまうため）。呼び出しはチャットで `/スキル名` です。
 
 ## 参考リンク
 
