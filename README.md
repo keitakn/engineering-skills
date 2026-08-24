@@ -10,7 +10,7 @@
 | [code-naming](.claude/skills/code-naming) | どのツールでも | `getUserData` のような何も説明しない名前をAIが量産してくるときに。名前だけで、通信するのか、計算するのか、持っている値を返すだけなのかが読み取れる状態にする |
 | [codex-plan-review-loop](.claude/skills/codex-plan-review-loop) | Claude Code | AIに書かせた実装計画を、そのまま実装に進めてよいか不安なときに。実装前に Codex へレビューさせ、指摘と修正のループを回してから着手する |
 | [codex-pr-review-loop](.claude/skills/codex-pr-review-loop) | Claude Code | AIと作った Pull Request を人間のレビューに出す前に、一度検収を通したいときに。Codex が指摘し、取捨選択は人間が行い、修正と再レビューはループが回す |
-| [explain-visually](.claude/skills/explain-visually) | Claude Code | 長い設計文書や PR を渡されて、正直なところ読む気にならないときに。図と短い文で1枚のHTMLに組み直し、ブラウザで開く |
+| [explain-visually](.claude/skills/explain-visually) | Claude Code | 長文の実装計画や、他のメンバーが AI で作った PR などを読み解いて、理解を早めたいときに。図と短い文で1枚のHTMLに組み直し、ブラウザで開く |
 | [github-pr-review-draft](.claude/skills/github-pr-review-draft) | Claude Code | 他の開発者の PR レビューを AI に手伝わせたいが、勝手にコメントを投稿されては困るときに。AI がやるのは下読みとコメント案まで。GitHub に出るのは人間が承認した文面だけ |
 | [claude-plan-review-loop](.codex/skills/claude-plan-review-loop) | Codex | codex-plan-review-loop の逆方向。Codex で開発していて、実装計画のレビューを Claude Code に任せたいときに |
 | [claude-pr-review-loop](.codex/skills/claude-pr-review-loop) | Codex | codex-pr-review-loop の逆方向。Codex で作った PR を Claude Code に検収させたいときに |
