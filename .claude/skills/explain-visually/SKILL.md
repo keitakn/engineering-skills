@@ -25,7 +25,11 @@ disable-model-invocation: true
 
 ## 前提条件
 
-- Google Chrome がインストール済み（`/Applications/Google Chrome.app`）
+- Google Chrome がインストール済み
+  - macOS: `/Applications/Google Chrome.app`
+  - Windows: `C:\Program Files\Google\Chrome\Application\chrome.exe`（`Program Files (x86)` と `%LOCALAPPDATA%` も探す）
+  - Linux: `google-chrome` / `chromium` を PATH から探す
+  - 上記で見つからない場合は環境変数 `EXPLAIN_VISUALLY_CHROME` に実行ファイルのパスを設定する
 - PRを対象にする場合は `gh` が認証済み
 - `verify_page.py` と `open` は**Bashのサンドボックスの外で実行する**。サンドボックス内ではChromeがプロファイルを作成できず起動に失敗し、CDNにも到達できない
 

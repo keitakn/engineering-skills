@@ -7,6 +7,7 @@
 2. ページ全体のスクリーンショットを1枚撮る（エージェントがReadして目視するため）
 
 python3 標準ライブラリのみで動作する。Google Chrome を外部コマンドとして使う。
+macOS / Windows / Linux で動く。Chrome の場所は環境変数 EXPLAIN_VISUALLY_CHROME で明示指定できる。
 """
 
 from __future__ import annotations
@@ -14,14 +15,57 @@ from __future__ import annotations
 import argparse
 import json
 import os
+import platform
 import re
+import shutil
 import signal
 import subprocess
 import sys
 import tempfile
 from pathlib import Path
 
-CHROME = "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
+IS_WINDOWS = platform.system() == "Windows"
+
+CHROME_ENV_VAR = "EXPLAIN_VISUALLY_CHROME"
+
+CHROME_PATHS_BY_OS = {
+    "Darwin": [
+        "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
+    ],
+    "Windows": [
+        r"C:\Program Files\Google\Chrome\Application\chrome.exe",
+        r"C:\Program Files (x86)\Google\Chrome\Application\chrome.exe",
+        os.path.expandvars(r"%LOCALAPPDATA%\Google\Chrome\Application\chrome.exe"),
+    ],
+    "Linux": [
+        "/usr/bin/google-chrome",
+        "/usr/bin/google-chrome-stable",
+        "/usr/bin/chromium",
+        "/usr/bin/chromium-browser",
+    ],
+}
+
+CHROME_COMMANDS = ["google-chrome", "google-chrome-stable", "chromium", "chromium-browser", "chrome"]
+
+
+def locate_chrome() -> str | None:
+    """Chromeの実行ファイルの場所を返す。見つからなければ None。"""
+    configured = os.environ.get(CHROME_ENV_VAR)
+    if configured:
+        # 存在確認をせずそのまま返す。誤ったパスを黙って無視すると、
+        # 利用者は「指定したのに使われない」理由に辿り着けないため
+        return configured
+    for path in CHROME_PATHS_BY_OS.get(platform.system(), []):
+        if Path(path).is_file():
+            return path
+    for command in CHROME_COMMANDS:
+        found = shutil.which(command)
+        if found:
+            return found
+    return None
+
+
+CHROME = locate_chrome()
 
 # ページ高さをDOMから取得できなかった場合に使う高さ。
 # Chrome の --screenshot はウィンドウ高さを超える部分を写さないため、実際の高さを使うのが基本
@@ -46,15 +90,43 @@ def run_chrome(url: str, profile: Path, extra: list[str], timeout: int) -> str:
         *extra,
         url,
     ]
+    # Windows には setsid が無いため、代わりに独立したプロセスグループを作る指定を使う
+    group = {"creationflags": subprocess.CREATE_NEW_PROCESS_GROUP} if IS_WINDOWS else {"start_new_session": True}
     proc = subprocess.Popen(
-        cmd, stdout=subprocess.PIPE, stderr=subprocess.DEVNULL, text=True, start_new_session=True
+        cmd,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.DEVNULL,
+        text=True,
+        # ロケール依存の既定エンコーディングに任せない。日本語を含むDOMが
+        # Windows(cp932)で復号できず落ちるため
+        encoding="utf-8",
+        errors="replace",
+        **group,
     )
     try:
         out, _ = proc.communicate(timeout=timeout)
     except subprocess.TimeoutExpired:
-        os.killpg(os.getpgid(proc.pid), signal.SIGKILL)
+        terminate_process_tree(proc)
         out, _ = proc.communicate()
     return out or ""
+
+
+def terminate_process_tree(proc: subprocess.Popen) -> None:
+    """Chromeを子プロセスごと終了させる。
+
+    Chromeはレンダラ等を別プロセスに持つため、親だけを止めても残る。
+    """
+    if IS_WINDOWS:
+        # os.killpg / signal.SIGKILL はPOSIX専用でWindowsには存在しない。
+        # taskkill の /T が子プロセスを辿るため、これで木ごと落とす
+        subprocess.run(
+            ["taskkill", "/F", "/T", "/PID", str(proc.pid)],
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+            check=False,
+        )
+        return
+    os.killpg(os.getpgid(proc.pid), signal.SIGKILL)
 
 
 def dump_dom(url: str, profile: Path, width: int, budget_ms: int, timeout: int) -> str:
@@ -79,6 +151,11 @@ def page_title(dom: str) -> str:
 
 
 def main() -> int:
+    # Windowsの既定の標準出力はcp932で、この結果JSONに含まれる日本語が化けるか例外になる。
+    # 呼び出し側にPYTHONIOENCODINGの設定を要求しないよう、ここで揃える
+    if hasattr(sys.stdout, "reconfigure"):
+        sys.stdout.reconfigure(encoding="utf-8")
+
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("html", help="検証するHTMLファイルのパス")
     parser.add_argument("--width", type=int, default=1250, help="ビューポート幅（既定: 1250）")
@@ -90,8 +167,18 @@ def main() -> int:
     if not html.is_file():
         print(json.dumps({"ok": False, "error": f"ファイルが見つかりません: {html}"}, ensure_ascii=False))
         return 1
-    if not Path(CHROME).exists():
-        print(json.dumps({"ok": False, "error": f"Google Chrome が見つかりません: {CHROME}"}, ensure_ascii=False))
+    if CHROME is None or not Path(CHROME).exists():
+        looked = CHROME or ", ".join(CHROME_PATHS_BY_OS.get(platform.system(), [])) or "(候補なし)"
+        print(
+            json.dumps(
+                {
+                    "ok": False,
+                    "error": f"Google Chrome が見つかりません: {looked}",
+                    "hint": f"環境変数 {CHROME_ENV_VAR} に実行ファイルのパスを設定する",
+                },
+                ensure_ascii=False,
+            )
+        )
         return 1
 
     url = html.as_uri()
