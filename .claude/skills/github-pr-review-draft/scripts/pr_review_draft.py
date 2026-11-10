@@ -72,6 +72,15 @@ LGTM_IMAGE_URL_PREFIX = "https://lgtm-images.lgtmeow.com/"
 def lgtm_markdown(image_url):
     return "[![LGTMeow]({})]({})".format(image_url, LGTM_PAGE_URL)
 
+
+# APPROVE は「このままマージしてよい」の意思表示なので、何かを頼む行コメントと同時には送らない
+# （作者がそのコメントを直してからマージすべきか判断できなくなるため）
+APPROVE_WITH_COMMENTS_MESSAGE = (
+    "APPROVE は投稿する行コメントが 0 件のときだけ送れます。"
+    "行コメントを投稿するときは --event comment で承認してください。")
+# 行コメントが 0 件のまとめ文に「コメントした」と書かれていると、読者は存在しないコメントを探す
+SUMMARY_PHRASE_FOR_COMMENTS = "コメントしたので確認をお願いします"
+
 # --- 必読リンク判定 ---------------------------------------------------------
 # 注意: このブロックは codex-pr-review-loop/scripts/pr_review.py と意図的に
 # 重複させている。判定規則を変更する場合は両方を同期すること。
@@ -1476,6 +1485,8 @@ def cmd_approve(args):
                 "start_side": c.get("start_side"),
                 "bodyFinal": normalize_text(c.get("body") or ""),
             })
+        if args.event.upper() == "APPROVE" and comments:
+            die(APPROVE_WITH_COMMENTS_MESSAGE)
         # 本文はGitHub上の実体をそのまま正とする（LGTM画像はstage時に含まれていれば
         # そのまま残る。ここでは追加しない）
         payload = approved_payload(
@@ -1517,7 +1528,6 @@ def cmd_approve(args):
     approved = [by_id[i] for i in sorted(post_ids, key=lambda x: int(x[1:]))]
     event = args.event.upper()
     summary = draft.get("summary") or ""
-    approve_warnings = []
     if event == "APPROVE":
         # LGTM画像はスクリプトだけが本文に追加する。選択済みの画像を承認内容に
         # 焼き込むことで、承認した文字列と投稿される文字列の一致を保つ
@@ -1526,13 +1536,14 @@ def cmd_approve(args):
         if not image_url.startswith(LGTM_IMAGE_URL_PREFIX):
             die("Approveの承認にはLGTM画像の選択が必要です。"
                 "先に lgtm --run \"{}\" を実行してください。".format(run_dir))
+        if approved:
+            die(APPROVE_WITH_COMMENTS_MESSAGE)
+        if SUMMARY_PHRASE_FOR_COMMENTS in summary:
+            die("行コメントが 0 件なのに、まとめ文が行コメントありの固定文のままです。"
+                "draft.json の summary を指摘ゼロ用の固定文に差し替えて draft からやり直してください。")
         md = lgtm_markdown(image_url)
         summary = "{}\n\n{}".format(normalize_text(summary), md) \
             if summary.strip() else md
-        if any(c["kind"] == "must" for c in approved):
-            approve_warnings.append(
-                "must の指摘を投稿対象に含めたまま Approve しようとしています。"
-                "意図した組み合わせか確認してください")
     payload = approved_payload(state, summary, approved, event)
     h = payload_hash(payload)
     save_json(os.path.join(run_dir, "approved.json"), {
@@ -1565,7 +1576,7 @@ def cmd_approve(args):
         "summaryIncluded": bool(payload["summary"]),
         # 公開されるまとめ文そのもの（Approve時はLGTM画像の行が末尾に付く）
         "summaryFinal": payload["summary"],
-        "warnings": approve_warnings,
+        "warnings": [],
     }, ensure_ascii=False, indent=2))
 
 
@@ -1886,7 +1897,7 @@ def main():
     p.add_argument("--post", help="投稿するコメントID（カンマ区切り）")
     p.add_argument("--skip", help="見送るコメントID（カンマ区切り）")
     p.add_argument("--event", choices=["comment", "approve"], default="comment",
-                   help="送信種別。approve はPRの承認（まとめ文末尾にLGTM画像が付く）")
+                   help="送信種別。approve はPRの承認（行コメントが 0 件のときだけ指定できる。まとめ文末尾にLGTM画像が付く）")
     p.add_argument("--adopt-staged", action="store_true",
                    help="GitHub上の保留レビュー実体を正として再承認する")
     p.set_defaults(func=cmd_approve)
